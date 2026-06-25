@@ -1670,6 +1670,7 @@ def _cast_many(bait_id, times, stop_on, mode="cast"):
         return scene + r["text"] + (_DIVE_SOLO_HINT if dive else _SOLO_HINT)
     stop = set(stop_on or [])
     highlights = []; caught = {}; caught_n = 0; new_n = 0; junk_n = 0; empty_n = 0; done = 0
+    pts0 = S["points"]; inv0 = len(S["catch_inventory"]); items0 = dict(S.get("items", {}))   # 远征结算用：快照
     stop_reason = ("潜满 %d 次" % times) if dive else ("钓满 %d 竿" % times)
     for _ in range(times):
         r = _cast_step(rng, bait_id, mode)
@@ -1692,13 +1693,23 @@ def _cast_many(bait_id, times, stop_on, mode="cast"):
             stop_reason = "钓到新种" if new_hit else ("钓到稀有+" if rare_hit else ("遇到水下奇遇" if enc_hit else "遇到事件"))
             break
     S["rngState"] = rng.state; S["rngCalls"] = rng.calls
-    haul = "、".join("%s×%d" % (n, c) for n, c in caught.items()) or ("空潜" if dive else "空军")
-    tail = "🐟 %s %d 条%s：%s" % ("摸上" if dive else "上钩", caught_n, ("（新种 %d）" % new_n) if new_n else "", haul)
-    if junk_n: tail += ("　🪨 空摸 %d 次" % junk_n) if dive else ("　🪣 杂物 %d 竿" % junk_n)
-    if empty_n: tail += "　🌀 空%s %d" % ("潜" if dive else "竿", empty_n)
     body = ("\n———\n".join(highlights) + "\n\n") if highlights else ""
-    head = ("🤿 连潜 %d 次" % done) if dive else ("🎣 连钓 %d 竿" % done)
-    return scene + "%s · 停因：%s\n%s—— 收获 ——\n%s" % (head, stop_reason, body, tail)
+    haul = "、".join("%s×%d" % (n, c) for n, c in caught.items())
+    if dive:   # 一次潜水＝一趟远征，上岸汇总：渔获价值 / 宝物事件收益 / 新图鉴 / 氧气花费 / 净值
+        catch_value = sum(c["value"] for c in S["catch_inventory"][inv0:])
+        treasure_value = sum(ITEMS.get(k, {}).get("value", 0) * (S["items"].get(k, 0) - items0.get(k, 0)) for k in S.get("items", {}))
+        extra_in = treasure_value + (S["points"] - pts0)   # 宝物 + 事件点数 + 新图鉴首发奖励
+        cost = done * OXYGEN["cost"]; net = catch_value + extra_in - cost
+        s = "—— 🤿 远征结算 ——"
+        s += "\n🐟 渔获 %d 条%s：%s（可卖约 %d 点）" % (caught_n, ("，新种 %d" % new_n) if new_n else "", haul or "空潜", catch_value)
+        if extra_in: s += "\n🎁 宝物/事件/新发现：+%d 点" % extra_in
+        if junk_n + empty_n: s += "\n🪨 空手 %d 次" % (junk_n + empty_n)
+        s += "\n⛽ 氧气花费：%d 瓶（约 -%d 点）\n💰 本趟净值：约 %+d 点（卖掉渔获/宝物后）" % (done, cost, net)
+        return scene + "🤿 远征归来 · 潜 %d 次 · 停因：%s\n%s%s" % (done, stop_reason, body, s)
+    tail = "🐟 上钩 %d 条%s：%s" % (caught_n, ("（新种 %d）" % new_n) if new_n else "", haul or "空军")
+    if junk_n: tail += "　🪣 杂物 %d 竿" % junk_n
+    if empty_n: tail += "　🌀 空竿 %d" % empty_n
+    return "🎣 连钓 %d 竿 · 停因：%s\n%s—— 收获 ——\n%s" % (done, stop_reason, body, tail)
 
 _HELP = """文字钓鱼游戏（你是玩家）。用点数买鱼饵→抛竿→按稀有度概率钓鱼→卖鱼换点数→集齐图鉴。
 指令（传给 cmd()，大小写不敏感）：

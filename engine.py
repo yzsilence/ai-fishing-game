@@ -1071,7 +1071,8 @@ def _new_state(seed=_DEFAULT_SEED):
             "bait_inventory": {"basic_worm": 5}, "catch_inventory": [], "items": {}, "pending_chests": [], "seen_letters": {},
             "encyclopedia": {}, "stats": {"total_casts": 0, "total_caught": 0, "total_chests": 0, "total_dives": 0}, "local_dry": 0,
             "fever": 0, "free_bait": 0,    # 幸运事件挂的 buff：剩余翻倍竿数 / 剩余免饵竿数
-            "oxygen": 0, "oxygen_ever": False}   # 潜水：氧气瓶库存 / 是否买过氧气瓶（买过才显示水下待发现）
+            "oxygen": 0, "oxygen_ever": False,   # 潜水：氧气瓶库存 / 是否买过氧气瓶（买过才显示水下待发现）
+            "dive_unlocked": [], "map_fragments": {}}   # 已解锁潜水的地点 / 各地点已集藏宝图碎片数
 
 S = None
 def _load():
@@ -1093,6 +1094,15 @@ def _load():
     S.setdefault("items", {}); S.setdefault("pending_chests", []); S.setdefault("seen_letters", {}); S.setdefault("local_dry", 0)
     S.setdefault("fever", 0); S.setdefault("free_bait", 0)
     S.setdefault("oxygen", 0); S.setdefault("oxygen_ever", False)
+    S.setdefault("map_fragments", {})
+    if "dive_unlocked" not in S:   # 老存档兼容：已钓到过水下鱼的地点视为已解锁，不锁老玩家
+        unlocked = set()
+        for fid in S.get("encyclopedia", {}):
+            ff = FISH.get(fid)
+            if ff and ff.get("dive"):
+                for l in ff["locations"]:
+                    if l != "all": unlocked.add(l)
+        S["dive_unlocked"] = list(unlocked)
     S.setdefault("stats", {}).setdefault("total_chests", 0)
     S["stats"].setdefault("total_casts", 0); S["stats"].setdefault("total_caught", 0); S["stats"].setdefault("total_dives", 0)
     return S
@@ -1241,6 +1251,10 @@ def _state_json():
     if S.get("oxygen", 0) > 0: j["oxygen"] = S["oxygen"]         # 氧气瓶（dive 用）
     if S.get("fever", 0) > 0: j["fever"] = S["fever"]            # 剩余翻倍竿数
     if S.get("free_bait", 0) > 0: j["free_bait"] = S["free_bait"]  # 剩余免饵竿数
+    lid = S["location_id"]   # 本地潜水点：未解锁则示意藏宝图碎片进度
+    if not _dive_unlocked(lid):
+        have = S.get("map_fragments", {}).get(lid, 0)
+        if have > 0: j["map_frag"] = "%d/%d" % (have, _dive_frags_needed(LOCATIONS[lid]))
     return "📊 " + json.dumps(j, ensure_ascii=False)
 # 某地点当季还有几种没见过的鱼：normal=常规(常见~史诗)、legend=传说/神话(单列、可遇不可求)。
 # 传说/神话只算这地"专属"的（排除 locations:["all"] 的全域神话，免得每个钓点都被顶高、也免凑不满常规墙）。
@@ -1263,6 +1277,9 @@ def _c_status():
     items = [(k, n) for k, n in S.get("items", {}).items() if n > 0]
     if items: extra += "\n物品：" + "、".join("%s×%d" % (ITEMS.get(k, {}).get("name", k), n) for k, n in items)
     if S.get("pending_chests"): extra += "\n📦 待开宝箱 %d 个（inventory 看，open 开）" % len(S["pending_chests"])
+    frags = [(k, v) for k, v in S.get("map_fragments", {}).items() if v > 0 and not _dive_unlocked(k)]
+    if frags: extra += "\n🧩 藏宝图碎片：" + "、".join("%s %d/%d" % (LOCATIONS[k]["name"], v, _dive_frags_needed(LOCATIONS[k])) for k, v in frags)
+    if S.get("dive_unlocked"): extra += "\n🗺️ 已解锁潜水点：" + "、".join(LOCATIONS[l]["name"] for l in S["dive_unlocked"] if l in LOCATIONS)
     air = ("\n氧气瓶：%d（dive 潜水捕鱼用）" % S.get("oxygen", 0)) if (S.get("oxygen", 0) > 0 or S.get("oxygen_ever")) else ""
     return "【状态】%s\n鱼饵：%s%s\n未卖渔获：%d 条 ｜ 总抛竿 %d%s" % (_footer(), baits, air, len(S["catch_inventory"]), S["stats"]["total_casts"], extra)
 def _c_shop():
@@ -1299,9 +1316,12 @@ def _goto_list():
         leg = "（+%d 传说级）" % legend if legend > 0 else ""
         sea = "本季冷清" if not season_ok else ("本季待发现 %d 种%s" % (normal, leg) if normal > 0 else ("本季常规已集齐%s" % leg if legend > 0 else "本季已集齐"))
         dive_seg = ""
-        if S.get("oxygen_ever") and season_ok:
-            dn = _undiscovered_dive(l["id"], S["season_id"])
-            if dn > 0: dive_seg = "　🤿水下 %d 种待发现" % dn
+        if _dive_aware() and season_ok:
+            if _dive_unlocked(l["id"]):
+                dn = _undiscovered_dive(l["id"], S["season_id"])
+                if dn > 0: dive_seg = "　🤿水下 %d 种待发现" % dn
+            else:
+                dive_seg = "　🔒潜水未解锁(图 %d/%d)" % (S.get("map_fragments", {}).get(l["id"], 0), _dive_frags_needed(l))
         lines.append("  %s %s　%s　—— %s · %s%s" % (mark, l["name"], l["id"], st, sea, dive_seg))
     return "【钓点】（goto <地点id> 前往；🔒 的需花点数解锁）\n%s\n（你有 %d 点）" % ("\n".join(lines), S["points"])
 def _c_goto(loc_id):
@@ -1318,9 +1338,13 @@ def _c_goto(loc_id):
     normal, legend = _undiscovered_here(loc_id, S["season_id"]) if season_ok else (0, 0)
     leg_hint = "，外加 %d 种传说级潜伏" % legend if legend > 0 else ""
     hint = "" if not season_ok else ("\n本季这里还有 %d 种没见过的鱼%s。" % (normal, leg_hint) if normal > 0 else ("\n本季常规鱼已集齐，但还有 %d 种传说级潜伏。" % legend if legend > 0 else "\n本季这里的常规鱼你已集齐了。"))
-    if S.get("oxygen_ever") and season_ok:   # 买过氧气瓶才提示水下
-        dn = _undiscovered_dive(loc_id, S["season_id"])
-        if dn > 0: hint += "\n🤿 水下还有 %d 种没见过的鱼，dive 潜下去看看。" % dn
+    if _dive_aware() and season_ok:   # 接触过潜水系统才提示水下
+        if _dive_unlocked(loc_id):
+            dn = _undiscovered_dive(loc_id, S["season_id"])
+            if dn > 0: hint += "\n🤿 水下还有 %d 种没见过的鱼，dive 潜下去看看。" % dn
+        else:
+            have = S.get("map_fragments", {}).get(loc_id, 0)
+            hint += "\n🔒 这里的潜水点还没解锁——水面钓鱼集藏宝图碎片（已 %d/%d）拼出地图就能潜。" % (have, _dive_frags_needed(loc))
     return "来到【%s】。%s%s%s%s" % (loc["name"], loc["description"], char, off, hint)
 def _c_inv():
     out = []
@@ -1331,6 +1355,9 @@ def _c_inv():
         out.append("🎁 物品：\n" + "\n".join("  %s　%s×%d%s" % (k, ITEMS.get(k, {}).get("name", k), n, ("（可 sell item %s）" % k) if ITEMS.get(k, {}).get("sellable") else "") for k, n in items))
     if S.get("pending_chests"):
         out.append("📦 待开宝箱：\n" + "\n".join("  %s（open %s）" % (c["chest_uid"], c["chest_uid"]) for c in S["pending_chests"]))
+    frags = [(k, v) for k, v in S.get("map_fragments", {}).items() if v > 0 and not _dive_unlocked(k)]
+    if frags:
+        out.append("🧩 藏宝图碎片（集齐解锁该地潜水）：\n" + "\n".join("  %s %d/%d" % (LOCATIONS[k]["name"], v, _dive_frags_needed(LOCATIONS[k])) for k, v in frags))
     if not out: return "渔篓空空。去 cast 抛几竿吧。"
     return "【渔篓】（sell <实例id>/sell all/sell species <鱼id>/sell item <物品id>）\n" + "\n".join(out)
 def _c_sell(target):
@@ -1445,6 +1472,22 @@ def _record_catch(f, size, value):
     bonus = RARITY[f["rarity"]]["discovery_bonus"] if first else 0
     if bonus: S["points"] += bonus
     return inst, first, bonus
+
+# ── 潜水点解锁：水面钓鱼集藏宝图碎片，集齐拼成该地藏宝图 → 解锁这里的潜水 ──
+_FRAG_CHANCE = 0.15   # 水面钓到鱼时、本地潜水未解锁，额外捞到一块碎片的概率
+def _dive_unlocked(loc_id): return loc_id in S.get("dive_unlocked", [])
+def _dive_aware(): return bool(S.get("oxygen_ever") or S.get("dive_unlocked") or S.get("map_fragments"))
+def _dive_frags_needed(loc):   # 越深/越贵的水域，藏宝图越难拼（3~5 块）
+    c = loc["unlock_cost"]
+    return 3 if c <= 200 else (4 if c <= 480 else 5)
+def _gain_fragment(loc_id):
+    fr = S.setdefault("map_fragments", {}); fr[loc_id] = fr.get(loc_id, 0) + 1
+    need = _dive_frags_needed(LOCATIONS[loc_id]); name = LOCATIONS[loc_id]["name"]
+    if fr[loc_id] >= need:
+        fr[loc_id] = 0
+        if loc_id not in S.setdefault("dive_unlocked", []): S["dive_unlocked"].append(loc_id)
+        return "\n🗺️ 集齐 %d 块碎片，拼成了【%s】的藏宝图——这片水域的潜水点解锁了！（买氧气瓶后 dive 下水）" % (need, name)
+    return "\n🧩 还捞上来一块【%s】的藏宝图碎片！（%d/%d，集齐可解锁这里的潜水点）" % (name, fr[loc_id], need)
 
 # ── 幸运随机事件：成功钓到鱼后小概率触发，立即生效或给后续几竿挂 buff ──
 LUCK_CHANCE = 0.05          # 每条成功渔获后触发幸运事件的概率
@@ -1564,9 +1607,12 @@ def _cast_step(rng, bait_id, mode="cast"):
     bonus_line = ("\n🎉 图鉴新发现！首次收录奖励 +%d 点" % bonus) if bonus else ""
     luck_line, luck_id = _roll_luck(rng, pool, bait_id, f, size, inst, mode)   # 小概率幸运事件（潜水多一组水下专属）
     luck_seg = ("\n" + luck_line) if luck_line else ""
+    frag_line = ""   # 水面钓鱼集藏宝图碎片：本地潜水未解锁时，小概率额外捞一块
+    if not dive and not _dive_unlocked(S["location_id"]) and rng.random() < _FRAG_CHANCE:
+        frag_line = _gain_fragment(S["location_id"])
     secret = "" if dive else _secret_hint()
-    return {"text": season_msg + "%s\n%s%s%s%s\n%s%s%s" % (bite, _format_catch(f, size, value, inst, first), bonus_line, fever_line, luck_seg, _footer(), _ambience(loc, rng), secret),
-            "consumed": True, "kind": "fish", "fish_name": f["name"], "rarity": f["rarity"], "first": first, "season_changed": season_changed, "luck": luck_id, "fever_hit": fever_line != ""}
+    return {"text": season_msg + "%s\n%s%s%s%s%s\n%s%s%s" % (bite, _format_catch(f, size, value, inst, first), bonus_line, fever_line, luck_seg, frag_line, _footer(), _ambience(loc, rng), secret),
+            "consumed": True, "kind": "fish", "fish_name": f["name"], "rarity": f["rarity"], "first": first, "season_changed": season_changed, "luck": luck_id, "fever_hit": fever_line != "", "frag": frag_line != ""}
 
 def _c_cast(bait_id):
     rng = _Rng(S["rngState"], S["rngCalls"])
@@ -1580,6 +1626,9 @@ _DIVE_SOLO_HINT = "\n💡 多带几瓶氧气可以连潜：dive 5（配 stop=new
 def _cast_many(bait_id, times, stop_on, mode="cast"):
     dive = mode == "dive"
     times = max(1, min(20, int(times)))
+    if dive and not _dive_unlocked(S["location_id"]):   # 潜水点未解锁：先去集藏宝图碎片
+        loc = LOCATIONS[S["location_id"]]; need = _dive_frags_needed(loc); have = S.get("map_fragments", {}).get(S["location_id"], 0)
+        return "🔒 【%s】的潜水点还没解锁——先在水面钓鱼集齐藏宝图碎片（已 %d/%d），拼出地图再来潜。" % (loc["name"], have, need)
     rng = _Rng(S["rngState"], S["rngCalls"])
     scene = ""   # 潜水：结果顶部出一句当地当季「下潜实况」（真有氧气下水才出；水面不出、不耗 rng）
     if dive and S.get("oxygen", 0) > 0:
@@ -1599,7 +1648,7 @@ def _cast_many(bait_id, times, stop_on, mode="cast"):
             highlights.append(r["text"]); stop_reason = "没气瓶了" if dive else "没饵了"; break
         done += 1
         rank = _RARITY_RANK.get(r.get("rarity", ""), 0)
-        if r.get("first") or rank >= 2 or r["kind"] == "event" or r["season_changed"] or r.get("luck") or r.get("fever_hit"):
+        if r.get("first") or rank >= 2 or r["kind"] == "event" or r["season_changed"] or r.get("luck") or r.get("fever_hit") or r.get("frag"):
             highlights.append(r["text"])
         if r["kind"] == "fish":
             caught[r["fish_name"]] = caught.get(r["fish_name"], 0) + 1; caught_n += 1
@@ -1626,8 +1675,9 @@ _HELP = """文字钓鱼游戏（你是玩家）。用点数买鱼饵→抛竿→
   cmd('cast [饵id]')          抛竿一次（不填=用最便宜可用饵）；核心动作
   cmd('cast [饵id] N')        一次连钓 N 竿（1~20），只回一个汇总，省来回
   cmd('cast N stop=rare')     连钓时遇到 新种(new)/稀有(rare)/事件(event) 就提前停（可逗号多选）
-  cmd('buy oxygen [数量]')     买氧气瓶（潜水用，一瓶潜一次）
+  cmd('buy oxygen [数量]')     买氧气瓶（潜水用，一瓶潜一次；买 5 瓶 8 折、10 瓶 7 折）
   cmd('dive [次数] [stop=..]') 潜水：耗氧气瓶(不耗饵)，捕只在水下出没的鱼；带次数=连潜，stop 同 cast
+                              （潜水点要先解锁：在该地水面钓鱼会随机捞到藏宝图碎片，集齐自动拼成藏宝图、解锁这里的潜水）
   cmd('goto')                 不带参数 = 列出所有钓点（价格/本季待发现；买过氧气瓶还显示水下待发现）
   cmd('goto <地点id>')         前往该地点（未解锁则花点数解锁）
   cmd('inventory')            看渔篓 + 物品 + 待开宝箱

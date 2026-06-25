@@ -67,6 +67,7 @@ print(engine.new_game(2024))         # 用种子 2024 重开一局
 - **卖鱼 / 卖宝（sell）换点数**，点数用来买好饵、**解锁新水域**。
 - **抛竿偶遇**漂流瓶（收集纸条）、宝箱（要钥匙或花点数开）、宝物。
 - **幸运时刻**：钓到鱼时小概率触发——分裂鱼钩（一竿上三条）、点石成金（这条价值×3）、渔获热潮（接下来几条翻倍）、河神的祝福（几竿不耗饵）、千载难逢的涨潮（破纪录大鱼）、蚌中生珠（掏出财宝）。
+- **潜水（dive）**：在 shop 买氧气瓶，就能在任意钓点 `dive` 潜水，捕获只有水下才有的鱼种（水面抛竿钓不到）。一瓶潜一次、不耗鱼饵，带几瓶就连潜几次。
 - **集图鉴**：第一次钓到某种鱼会记入图鉴（卖掉也不丢记录），首次发现还有额外点数奖励。
 
 开局：200 点 + 普通蚯蚓×5，在「月光池塘」（和「芦苇河」已解锁）。
@@ -78,8 +79,9 @@ print(engine.new_game(2024))         # 用种子 2024 重开一局
 | `help` | 看规则 |
 | `status` | 点数 / 地点 / 季节 / 鱼饵 / 图鉴进度 |
 | `shop` | 看可买鱼饵 |
-| `buy <饵id> [数量]` | 买饵，如 `buy glow_bait 2` |
+| `buy <饵id> [数量]` | 买饵，如 `buy glow_bait 2`；买氧气瓶 `buy oxygen 5` |
 | `cast [饵id] [次数] [stop=new,rare,event]` | 抛竿。不填饵=用最便宜的；带次数=连钓 N 竿（1~20）；`stop=` 遇新种/稀有/事件就提前停 |
+| `dive [次数] [stop=...]` | 潜水（先 `buy oxygen`）。每潜一次耗 1 氧气瓶、不耗饵，捕只在水下出没的鱼；带次数=连潜 |
 | `goto` | **不带参数 = 列出所有钓点**（价格 / 本季还有几种没见过的鱼，含单列的传说级） |
 | `goto <地点id>` | 前往该地点（未解锁则花点数解锁） |
 | `inventory` | 渔篓 + 物品 + 待开宝箱 |
@@ -153,13 +155,13 @@ import engine
 
 def play_fishing(args: dict) -> str:
     a = args["action"]
-    if a == "cast":
-        parts = ["cast"]
-        if args.get("bait_id"): parts.append(args["bait_id"])
+    if a in ("cast", "dive"):
+        parts = [a]
+        if a == "cast" and args.get("bait_id"): parts.append(args["bait_id"])
         if args.get("times"):   parts.append(str(args["times"]))
         if args.get("stop_on"): parts.append("stop=" + ",".join(args["stop_on"]))
         return engine.cmd(" ".join(parts))
-    if a == "buy":   return engine.cmd(f"buy {args.get('bait_id','')} {args.get('qty',1)}")
+    if a == "buy":   return engine.cmd(f"buy {args.get('bait_id','')} {args.get('qty',1)}")  # bait_id=\"oxygen\" 即买氧气瓶
     if a == "goto":  return engine.cmd(f"goto {args.get('location_id','')}".strip())
     if a == "sell":  return engine.cmd(f"sell {args.get('target','')}")
     if a == "open":  return engine.cmd(f"open {args.get('chest_uid','')}")
@@ -187,7 +189,7 @@ def play_fishing(args: dict) -> str:
 
 ## 内容规模
 
-55 种鱼（跨常见 / 少见 / 稀有 / 史诗 / 传说 / 神话 6 档）· 11 个钓点（2 个免费 + 9 个 200~800 点解锁）· 4 季节（每 20 竿推进一季）· 3 种鱼饵 · 漂流瓶 / 宝箱 / 宝物事件 · 6 种幸运随机事件 · 物品与点数经济 · 图鉴收集 · 稀有度仪式感播报 + 地点氛围/性格句。
+55 种水面鱼（跨常见 / 少见 / 稀有 / 史诗 / 传说 / 神话 6 档）+ 潜水专属水下鱼种 · 11 个钓点（2 个免费 + 9 个 200~800 点解锁）· 4 季节（每 20 竿推进一季）· 3 种鱼饵 + 氧气瓶潜水 · 漂流瓶 / 宝箱 / 宝物事件 · 6 种幸运随机事件 · 物品与点数经济 · 图鉴收集 · 稀有度仪式感播报 + 地点氛围/性格句。
 
 ## 改造 / 扩展
 

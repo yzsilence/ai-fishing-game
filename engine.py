@@ -110,12 +110,18 @@ FISH = {
     "frostfin_eel": {"id": "frostfin_eel", "name": "霜鳍鳗", "rarity": "epic", "description": "握在手里凉得发疼，鳍尖的霜化在掌心，像攥着一把不肯停的冬天，松开后还能听见冰裂的细响在骨头里回荡。", "size_min": 30, "size_max": 90, "size_unit": "cm", "base_value": 220, "locations": ["abyssal_trench"], "seasons": ["winter"], "tags": ["deepsea", "glowing"],"latin":"Conger gelidus"},
     "clockwork_koi": {"id": "clockwork_koi", "name": "发条锦鲤", "rarity": "legendary", "description": "手指覆上它打磨般的黄铜鳞片时，耳中的滴答声猛地扩成一座看不见的钟楼，无数透明的齿轮从你眼前啮合着升起，日与夜在你皮肤上像翻书一样快速明灭，你闻到了时间本身的气味——旧铜、干涸的机油和亿万个正午的暴晒，直到它一甩尾，你才从时间的齿缝里跌回岸边。", "size_min": 30, "size_max": 80, "size_unit": "cm", "base_value": 400, "locations": ["floating_lake"], "seasons": ["all"], "tags": ["fantasy"],"latin":"Machina cyprinus","rumor":"发条锦鲤体内的齿轮日夜不停，有钟表匠从它鳃盖里听出了某座早已沉没的城市敲响的午时钟声。"},
     "the_first_drop": {"id": "the_first_drop", "name": "「第一滴水」", "rarity": "mythic", "description": "你小心翼翼地捧起这尾近乎不存在的水影，指尖却触到了一片混沌的冰凉，耳中猛然炸开天地初分时的第一声雷鸣，无数道原始的雨丝自虚空垂落，在你眼前汇成海洋、冲积出河床，直到它轻轻滑回水中，这场只有你目睹的创世暴雨才骤然停歇。", "size_min": 1, "size_max": 30, "size_unit": "cm", "base_value": 1000, "locations": ["all"], "seasons": ["all"], "individual_weight": 1.0, "tags": ["fantasy"],"latin":"Primastilla primordialis","rumor":"「第一滴水」是海洋的第一粒种子，握在手里时能听见世界诞生时的第一声雷，在掌心嗡嗡作响。"},
+
+    # ── 水下鱼（dive=True，只在潜水时出，水面抛竿钓不到）。下面是起步范例，更多由 DS 按模板产出后并进来 ──
+    "kelp_clinger": {"id": "kelp_clinger", "name": "缠藻鮟", "rarity": "common", "description": "通体覆满仿生水草的皮瓣，趴在水底一动不动，只有路过的小鱼撞进它伪装的叶丛才会暴露那张大嘴。", "size_min": 8, "size_max": 22, "size_unit": "cm", "base_value": 7, "locations": ["moonlit_pond", "reed_river"], "seasons": ["spring", "summer", "autumn"], "tags": ["underwater", "freshwater"], "dive": True, "latin": "Algophis adhaerens"},
+    "ruin_guardian_eel": {"id": "ruin_guardian_eel", "name": "守墟巨鳗", "rarity": "epic", "description": "盘踞在沉城断柱里的灰白巨鳗，鳞片嵌满千年贝壳与铜锈，张口时喉腔深处隐约回荡着水下钟楼的残响。", "size_min": 90, "size_max": 160, "size_unit": "cm", "base_value": 230, "locations": ["sunken_ruins"], "seasons": ["autumn", "winter"], "tags": ["underwater", "deepsea", "ancient"], "dive": True, "latin": "Anguilla custos"},
 }
 BAITS = {
     "basic_worm": {"id": "basic_worm", "name": "普通蚯蚓", "cost": 10, "description": "最朴素的蚯蚓，没有任何特殊效果，胜在便宜。", "effects": {}},
     "glow_bait": {"id": "glow_bait", "name": "夜光饵", "cost": 35, "description": "在黑暗中散发幽幽蓝光，对夜行性鱼类格外有吸引力。", "effects": {"rarity_weight_mult": {"rare": 1.5, "epic": 1.3}, "tag_weight_mult": {"nocturnal": 2.0}, "junk_chance_mult": 0.8}},
     "golden_lure": {"id": "golden_lure", "name": "黄金亮片", "cost": 80, "description": "华丽的金色旋转亮片，全稀有度的鱼都更容易上钩。", "effects": {"rarity_weight_mult": {"rare": 1.4, "epic": 1.6, "legendary": 2.0, "mythic": 2.0}, "junk_chance_mult": 0.7}},
 }
+# 氧气瓶：潜水消耗品，一瓶 = 潜一次（一次捕获）。在 shop 买、用 dive 下水（不耗鱼饵）。
+OXYGEN = {"id": "oxygen", "name": "氧气瓶", "cost": 45, "description": "一瓶压缩氧气，够你潜下去捕一次。带几瓶就能连潜几次——水下有些只能潜水才遇得到的鱼。"}
 # 特殊事件 / 物品：留空 = 不触发（填了内容自动激活）
 EVENTS = json.loads(r"""{"drift_bottle":{"id":"drift_bottle","name":"漂流瓶","type":"bottle","weight":145,"unique":true,"description":"一只随波而来的玻璃瓶撞上你的浮标——瓶里卷着一张陌生人写的纸条。","messages":["（致捞到这只瓶子的人：今天也辛苦啦，愿你下一竿就是大鱼。——一个把烦恼塞进瓶子扔进海里的人）","（瓶子里只有一句话：如果你读到这里，说明海把它送对了人。祝你好运。）","（一张被海水泡得发皱的纸条，上面画着一条歪歪扭扭的鱼，旁边写着：我钓了一整天，只钓到这只瓶子。哈。）","（恭喜你捞到一只空瓶——里面什么都没有，连张纸条都没有。就当大海跟你打了个招呼吧。）","（纸条上是一行陌生的字：愿你所求皆有回响，愿你所钓皆有惊喜。落款是一个谁也认不出的签名。）","（瓶里卷着半角旧海图，海岸线早被水泡得模糊，只有一处被红笔圈住，写着「这片海的鱼最好钓」——可惜没人知道是哪片海。）"],"rewards":{}},"floating_coral_pearl":{"id":"floating_coral_pearl","name":"漂来的珊瑚珠","type":"treasure","weight":18,"description":"浪尖上托着一颗粉红的珍珠，随着波光上下起浮，像一朵珊瑚花。","rewards":{"items":[{"id":"coral_pearl","qty":1}]}},"ambergris_chunk":{"id":"ambergris_chunk","name":"浮香的龙涎","type":"treasure","weight":10,"description":"一块灰白的蜡状物漂浮过来，空气里忽然漫开一股奇异的幽香。","rewards":{"items":[{"id":"ambergris","qty":1}]}},"rusty_chest":{"id":"rusty_chest","name":"锈迹宝箱","type":"chest","weight":25,"description":"一只包着铁皮的旧木箱浮出水面，铁锁布满红锈，但依然坚固。","lock":{"or_points":80},"loot_table":[{"weight":60,"reward":{"points_range":[100,200]}},{"weight":15,"reward":{"items":[{"id":"ancient_key","qty":1}]}},{"weight":15,"reward":{"items":[{"id":"gem_sapphire","qty":1}]}},{"weight":5,"reward":{"bait":[{"id":"golden_lure","qty":1}]}},{"weight":5,"reward":{"items":[{"id":"shipwreck_coin","qty":1}]}}]},"barnacle_chest":{"id":"barnacle_chest","name":"藤壶密箱","type":"chest","weight":20,"description":"一只被藤壶层层包裹的石箱，盖子上刻着古老的漩涡纹，没有锁孔，却紧密得几乎撬不开。","lock":{"or_points":60},"loot_table":[{"weight":50,"reward":{"points_range":[80,180]}},{"weight":30,"reward":{"items":[{"id":"moonstone","qty":1}]}},{"weight":20,"reward":{"bait":[{"id":"glow_bait","qty":3}]}}]},"ancient_captain_chest":{"id":"ancient_captain_chest","name":"船长遗箱","type":"chest","weight":8,"description":"一只雕着海怪缠锚图案的暗铜宝箱，从深水缓缓升起，海水从锁孔里汩汩流出。","lock":{"requires_item":"ancient_key","or_points":200},"loot_table":[{"weight":40,"reward":{"points_range":[150,300]}},{"weight":35,"reward":{"items":[{"id":"moonstone","qty":1},{"id":"gem_sapphire","qty":1}]}},{"weight":25,"reward":{"bait":[{"id":"golden_lure","qty":2}]}}]}}""")
 ITEMS = json.loads(r"""{"coral_pearl":{"id":"coral_pearl","name":"珊瑚珍珠","type":"treasure","description":"粉红色的珍珠，带着珊瑚的温润光泽，仿佛刚从人鱼的王冠上摘下。","value":150,"sellable":true},"gem_sapphire":{"id":"gem_sapphire","name":"蓝宝石","type":"treasure","description":"深海般的蓝色，里面封存着浪涛的纹路，轻晃时仿佛有潮声。","value":300,"sellable":true},"moonstone":{"id":"moonstone","name":"月光石","type":"treasure","description":"乳白色的石头上流转着月华般的光晕，传说月光凝结而成。","value":450,"sellable":true},"ambergris":{"id":"ambergris","name":"龙涎香","type":"treasure","description":"传说中的鲸之宝，散发着奇异幽香，正是香料商人梦寐以求的至宝。","value":500,"sellable":true},"shipwreck_coin":{"id":"shipwreck_coin","name":"沉船金币","type":"treasure","description":"一枚古老的金币，正面刻着模糊的王冠，背面是早已沉没的船名。","value":200,"sellable":true},"ancient_key":{"id":"ancient_key","name":"古老的钥匙","type":"key","description":"一把沉重的黄铜钥匙，尾端雕着海怪缠锚的图案，握在手里仿佛能听见远航的号角。","value":0,"sellable":false}}""")
@@ -129,8 +135,9 @@ def _new_state(seed=_DEFAULT_SEED):
             "season_id": "spring", "season_length": 20, "season_started_turn": 0,
             "points": 200, "location_id": "moonlit_pond", "unlocked_locations": ["moonlit_pond", "reed_river"],
             "bait_inventory": {"basic_worm": 5}, "catch_inventory": [], "items": {}, "pending_chests": [], "seen_letters": {},
-            "encyclopedia": {}, "stats": {"total_casts": 0, "total_caught": 0, "total_chests": 0}, "local_dry": 0,
-            "fever": 0, "free_bait": 0}   # 幸运事件挂的 buff：剩余翻倍竿数 / 剩余免饵竿数
+            "encyclopedia": {}, "stats": {"total_casts": 0, "total_caught": 0, "total_chests": 0, "total_dives": 0}, "local_dry": 0,
+            "fever": 0, "free_bait": 0,    # 幸运事件挂的 buff：剩余翻倍竿数 / 剩余免饵竿数
+            "oxygen": 0, "oxygen_ever": False}   # 潜水：氧气瓶库存 / 是否买过氧气瓶（买过才显示水下待发现）
 
 S = None
 def _load():
@@ -151,8 +158,9 @@ def _load():
         S = _new_state()   # 首次运行，找不到存档是正常的，不提示
     S.setdefault("items", {}); S.setdefault("pending_chests", []); S.setdefault("seen_letters", {}); S.setdefault("local_dry", 0)
     S.setdefault("fever", 0); S.setdefault("free_bait", 0)
+    S.setdefault("oxygen", 0); S.setdefault("oxygen_ever", False)
     S.setdefault("stats", {}).setdefault("total_chests", 0)
-    S["stats"].setdefault("total_casts", 0); S["stats"].setdefault("total_caught", 0)
+    S["stats"].setdefault("total_casts", 0); S["stats"].setdefault("total_caught", 0); S["stats"].setdefault("total_dives", 0)
     return S
 def _save():
     global _IO_WARN
@@ -284,6 +292,7 @@ def _state_json():
          "turn": S["turn"], "enc": "%d/%d" % (len(S["encyclopedia"]), len(FISH)),
          "bait": bait, "hold": len(S["catch_inventory"])}   # hold=未卖渔获条数
     if S.get("pending_chests"): j["chest"] = len(S["pending_chests"])
+    if S.get("oxygen", 0) > 0: j["oxygen"] = S["oxygen"]         # 氧气瓶（dive 用）
     if S.get("fever", 0) > 0: j["fever"] = S["fever"]            # 剩余翻倍竿数
     if S.get("free_bait", 0) > 0: j["free_bait"] = S["free_bait"]  # 剩余免饵竿数
     return "📊 " + json.dumps(j, ensure_ascii=False)
@@ -292,12 +301,15 @@ def _state_json():
 def _undiscovered_here(loc_id, sea_id):
     normal = legend = 0
     for f in FISH.values():
-        if not _eligible(f, loc_id, sea_id) or f["id"] in S["encyclopedia"]: continue
+        if f.get("dive") or not _eligible(f, loc_id, sea_id) or f["id"] in S["encyclopedia"]: continue
         if f["rarity"] in ("legendary", "mythic"):
             if "all" not in f["locations"]: legend += 1
         else:
             normal += 1
     return normal, legend
+# 某地点当季「水下」还有几种没见过的鱼（只数 dive 鱼）；买过氧气瓶才对玩家显示
+def _undiscovered_dive(loc_id, sea_id):
+    return sum(1 for f in FISH.values() if f.get("dive") and _eligible(f, loc_id, sea_id) and f["id"] not in S["encyclopedia"])
 
 def _c_status():
     baits = "、".join("%s×%d" % (BAITS[b]["name"], n) for b, n in S["bait_inventory"].items() if n > 0) or "（没饵了，去 shop 买）"
@@ -305,12 +317,19 @@ def _c_status():
     items = [(k, n) for k, n in S.get("items", {}).items() if n > 0]
     if items: extra += "\n物品：" + "、".join("%s×%d" % (ITEMS.get(k, {}).get("name", k), n) for k, n in items)
     if S.get("pending_chests"): extra += "\n📦 待开宝箱 %d 个（inventory 看，open 开）" % len(S["pending_chests"])
-    return "【状态】%s\n鱼饵：%s\n未卖渔获：%d 条 ｜ 总抛竿 %d%s" % (_footer(), baits, len(S["catch_inventory"]), S["stats"]["total_casts"], extra)
+    air = ("\n氧气瓶：%d（dive 潜水捕鱼用）" % S.get("oxygen", 0)) if (S.get("oxygen", 0) > 0 or S.get("oxygen_ever")) else ""
+    return "【状态】%s\n鱼饵：%s%s\n未卖渔获：%d 条 ｜ 总抛竿 %d%s" % (_footer(), baits, air, len(S["catch_inventory"]), S["stats"]["total_casts"], extra)
 def _c_shop():
     lines = ["%s　%s　%d点　%s" % (b["id"], b["name"], b["cost"], ("（有偏好加成，见 look）" if (b["effects"].get("tag_weight_mult") or b["effects"].get("rarity_weight_mult")) else "无特殊效果")) for b in BAITS.values()]
-    return "【商店】（buy <鱼饵id> [数量]）\n" + "\n".join(lines) + \
-        "\n老板搓了搓手：「好饵能让这片水里本来就有的鱼更肯上钩、更容易出稀有货——可它变不出新鱼种。想钓没见过的鱼，得换个水域、换个季节去寻。」"
+    lines.append("%s　%s　%d点　%s" % (OXYGEN["id"], OXYGEN["name"], OXYGEN["cost"], "潜水捕鱼用（一瓶潜一次，dive 下水）"))
+    return "【商店】（buy <id> [数量]）\n" + "\n".join(lines) + \
+        "\n老板搓了搓手：「好饵能让这片水里本来就有的鱼更肯上钩、更容易出稀有货——可它变不出新鱼种。想钓没见过的鱼，得换个水域、换个季节去寻。」\n「想要水下那些上不了岸的稀客？买几瓶氧气，dive 潜下去。」"
 def _c_buy(bait_id, qty):
+    if bait_id in ("oxygen", "oxygen_tank", "氧气瓶"):   # 氧气瓶：潜水消耗品，单独库存
+        qty = max(1, int(qty)); cost = OXYGEN["cost"] * qty
+        if S["points"] < cost: return "点数不够：%s×%d 需 %d 点，你只有 %d。" % (OXYGEN["name"], qty, cost, S["points"])
+        S["points"] -= cost; S["oxygen"] = S.get("oxygen", 0) + qty; S["oxygen_ever"] = True
+        return "买了 %s×%d，花 %d 点。剩 %d 点，现有氧气瓶×%d。（用 dive 潜水）" % (OXYGEN["name"], qty, cost, S["points"], S["oxygen"])
     b = BAITS.get(bait_id)
     if not b: return "没有这种鱼饵：%s。用 shop 看货架。" % bait_id
     qty = max(1, int(qty)); cost = b["cost"] * qty
@@ -330,7 +349,11 @@ def _goto_list():
         normal, legend = _undiscovered_here(l["id"], S["season_id"]) if season_ok else (0, 0)
         leg = "（+%d 传说级）" % legend if legend > 0 else ""
         sea = "本季冷清" if not season_ok else ("本季待发现 %d 种%s" % (normal, leg) if normal > 0 else ("本季常规已集齐%s" % leg if legend > 0 else "本季已集齐"))
-        lines.append("  %s %s　%s　—— %s · %s" % (mark, l["name"], l["id"], st, sea))
+        dive_seg = ""
+        if S.get("oxygen_ever") and season_ok:
+            dn = _undiscovered_dive(l["id"], S["season_id"])
+            if dn > 0: dive_seg = "　🤿水下 %d 种待发现" % dn
+        lines.append("  %s %s　%s　—— %s · %s%s" % (mark, l["name"], l["id"], st, sea, dive_seg))
     return "【钓点】（goto <地点id> 前往；🔒 的需花点数解锁）\n%s\n（你有 %d 点）" % ("\n".join(lines), S["points"])
 def _c_goto(loc_id):
     if not loc_id: return _goto_list()   # 不带参数 = 列出所有钓点
@@ -346,6 +369,9 @@ def _c_goto(loc_id):
     normal, legend = _undiscovered_here(loc_id, S["season_id"]) if season_ok else (0, 0)
     leg_hint = "，外加 %d 种传说级潜伏" % legend if legend > 0 else ""
     hint = "" if not season_ok else ("\n本季这里还有 %d 种没见过的鱼%s。" % (normal, leg_hint) if normal > 0 else ("\n本季常规鱼已集齐，但还有 %d 种传说级潜伏。" % legend if legend > 0 else "\n本季这里的常规鱼你已集齐了。"))
+    if S.get("oxygen_ever") and season_ok:   # 买过氧气瓶才提示水下
+        dn = _undiscovered_dive(loc_id, S["season_id"])
+        if dn > 0: hint += "\n🤿 水下还有 %d 种没见过的鱼，dive 潜下去看看。" % dn
     return "来到【%s】。%s%s%s%s" % (loc["name"], loc["description"], char, off, hint)
 def _c_inv():
     out = []
@@ -517,47 +543,67 @@ def _roll_luck(rng, pool, bait_id, f, size, inst):
         return "🦪✨ 蚌中生珠！鱼肚里滚出一枚%s（可 sell item %s）。" % (ITEMS[tk]["name"], tk), eid
     return "", None
 
-def _cast_step(rng, bait_id):
-    inv = S["bait_inventory"]
-    if not bait_id:
-        avail = [b for b in inv if inv[b] > 0]
-        if not avail: return {"text": "没有鱼饵了！去 shop 买点饵再来。（没扣回合）", "consumed": False, "kind": "no_bait", "season_changed": False}
-        bait_id = sorted(avail, key=lambda b: BAITS[b]["cost"])[0]
-    if bait_id not in BAITS: return {"text": "没有这种鱼饵：%s" % bait_id, "consumed": False, "kind": "bad_bait", "season_changed": False}
-    if inv.get(bait_id, 0) <= 0: return {"text": "%s 用光了。换一种或去 shop 买。（没扣回合）" % BAITS[bait_id]["name"], "consumed": False, "kind": "no_bait", "season_changed": False}
-    if S.get("free_bait", 0) > 0: S["free_bait"] -= 1   # 河神祝福：本竿不耗饵
-    else: inv[bait_id] -= 1
+_DIVE_JUNK = ["一截缠满水草的烂绳", "半扇生满藤壶的空贝壳", "一块硌手的礁石", "一只空了的海螺", "一团黏糊糊的水绵"]
+_DIVE_BITE = ["你蹬腿下潜，眼前忽地一花——", "水压裹住耳膜，一道影子从礁后窜出——", "屏住呼吸贴近水底，指尖触到一片冰凉的鳞——"]
+# 单步：mode="cast" 水面抛竿（耗鱼饵），mode="dive" 潜水（耗氧气瓶、不耗饵、只出水下鱼）。
+# 注意：水面分支的随机抽取顺序与旧版逐位一致——水下鱼被 dive 过滤排除，故老存档/水面确定性不破坏。
+def _cast_step(rng, bait_id, mode="cast"):
+    dive = mode == "dive"
+    if dive:
+        if S.get("oxygen", 0) <= 0:
+            return {"text": "氧气瓶用光了！去 shop 买氧气瓶再潜。（没扣回合）", "consumed": False, "kind": "no_air", "season_changed": False}
+        S["oxygen"] -= 1
+        bait_id = "basic_worm"   # 潜水无饵，借最朴素饵的「零加成」权重
+    else:
+        inv = S["bait_inventory"]
+        if not bait_id:
+            avail = [b for b in inv if inv[b] > 0]
+            if not avail: return {"text": "没有鱼饵了！去 shop 买点饵再来。（没扣回合）", "consumed": False, "kind": "no_bait", "season_changed": False}
+            bait_id = sorted(avail, key=lambda b: BAITS[b]["cost"])[0]
+        if bait_id not in BAITS: return {"text": "没有这种鱼饵：%s" % bait_id, "consumed": False, "kind": "bad_bait", "season_changed": False}
+        if inv.get(bait_id, 0) <= 0: return {"text": "%s 用光了。换一种或去 shop 买。（没扣回合）" % BAITS[bait_id]["name"], "consumed": False, "kind": "no_bait", "season_changed": False}
+        if S.get("free_bait", 0) > 0: S["free_bait"] -= 1   # 河神祝福：本竿不耗饵
+        else: inv[bait_id] -= 1
     bait = BAITS[bait_id]
-    S["turn"] += 1; S["stats"]["total_casts"] += 1
+    S["turn"] += 1
+    if dive: S["stats"]["total_dives"] = S["stats"].get("total_dives", 0) + 1
+    else: S["stats"]["total_casts"] += 1
     season_msg = _adv_season(); season_changed = season_msg != ""
     loc = LOCATIONS[S["location_id"]]
-    event_chance = (loc.get("event_chance_base", 0.05) + bait["effects"].get("event_chance_add", 0)) if EVENTS else 0
+    # 水下不触发漂流瓶/宝箱（那是水面浮标的事）
+    event_chance = 0 if dive else ((loc.get("event_chance_base", 0.05) + bait["effects"].get("event_chance_add", 0)) if EVENTS else 0)
     if event_chance > 0 and rng.random() < event_chance:
         S["local_dry"] = S.get("local_dry", 0) + 1
         return {"text": season_msg + _resolve_event(rng) + _secret_hint(), "consumed": True, "kind": "event", "season_changed": season_changed}
-    junk_chance = loc["junk_chance_base"] * bait["effects"].get("junk_chance_mult", 1.0)
+    junk_chance = loc["junk_chance_base"] * (1.0 if dive else bait["effects"].get("junk_chance_mult", 1.0))
     if rng.random() < junk_chance:
-        S["local_dry"] = S.get("local_dry", 0) + 1
+        if not dive: S["local_dry"] = S.get("local_dry", 0) + 1
+        if dive:
+            return {"text": season_msg + "🪨 %s。空潜一次，什么也没摸到。%s" % (_DIVE_JUNK[rng.rint(0, len(_DIVE_JUNK) - 1)], _ambience(loc, rng)), "consumed": True, "kind": "junk", "season_changed": season_changed}
         return {"text": season_msg + "🪣 %s。空军一竿。%s%s" % (_JUNK[rng.rint(0, len(_JUNK) - 1)], _ambience(loc, rng), _secret_hint()), "consumed": True, "kind": "junk", "season_changed": season_changed}
-    pool = [f for f in FISH.values() if _eligible(f, S["location_id"], S["season_id"])]
+    pool = [f for f in FISH.values() if _eligible(f, S["location_id"], S["season_id"]) and bool(f.get("dive")) == dive]
     if not pool:
-        S["local_dry"] = S.get("local_dry", 0) + 1
+        if not dive: S["local_dry"] = S.get("local_dry", 0) + 1
+        if dive:
+            return {"text": season_msg + "潜了下去，这片水域水下这个季节空荡荡的，什么都没有。%s" % _ambience(loc, rng), "consumed": True, "kind": "empty", "season_changed": season_changed}
         return {"text": season_msg + "浮标纹丝不动……这片水域这个季节什么都没咬钩。%s%s" % (_ambience(loc, rng), _secret_hint()), "consumed": True, "kind": "empty", "season_changed": season_changed}
     weights = [_eff_weight(f, S["location_id"], S["season_id"], bait_id) for f in pool]
     f = _wpick(rng, pool, weights); size = _roll_size(rng, f); value = _value(f, size)
     inst, first, bonus = _record_catch(f, size, value)
-    S["local_dry"] = 0 if first else S.get("local_dry", 0) + 1
+    if first: S["local_dry"] = 0
+    elif not dive: S["local_dry"] = S.get("local_dry", 0) + 1
     # 渔获热潮（上一事件挂的 buff）：本竿这条再翻一条
     fever_line = ""
     if S.get("fever", 0) > 0:
         S["fever"] -= 1
         di, dfirst, _b = _record_catch(f, size, value)
         fever_line = "\n🔥 热潮翻倍：又得一条 %s%s（%s）" % (f["name"], "★新" if dfirst else "", di)
-    bite = _bite_line(rng, f["rarity"])
+    bite = (_DIVE_BITE[rng.rint(0, len(_DIVE_BITE) - 1)]) if dive else _bite_line(rng, f["rarity"])
     bonus_line = ("\n🎉 图鉴新发现！首次收录奖励 +%d 点" % bonus) if bonus else ""
     luck_line, luck_id = _roll_luck(rng, pool, bait_id, f, size, inst)   # 小概率幸运事件
     luck_seg = ("\n" + luck_line) if luck_line else ""
-    return {"text": season_msg + "%s\n%s%s%s%s\n%s%s%s" % (bite, _format_catch(f, size, value, inst, first), bonus_line, fever_line, luck_seg, _footer(), _ambience(loc, rng), _secret_hint()),
+    secret = "" if dive else _secret_hint()
+    return {"text": season_msg + "%s\n%s%s%s%s\n%s%s%s" % (bite, _format_catch(f, size, value, inst, first), bonus_line, fever_line, luck_seg, _footer(), _ambience(loc, rng), secret),
             "consumed": True, "kind": "fish", "fish_name": f["name"], "rarity": f["rarity"], "first": first, "season_changed": season_changed, "luck": luck_id, "fever_hit": fever_line != ""}
 
 def _c_cast(bait_id):
@@ -568,21 +614,24 @@ def _c_cast(bait_id):
 
 _RARITY_RANK = {"common": 0, "uncommon": 1, "rare": 2, "epic": 3, "legendary": 4, "mythic": 5}
 _SOLO_HINT = "\n💡 一次只钓 1 竿挺费 token——下次试 cast 10 连钓，只回 1 条汇总（配 stop=new/rare 还能钓到新种/稀有就自动停）。"
-def _cast_many(bait_id, times, stop_on):
+_DIVE_SOLO_HINT = "\n💡 多带几瓶氧气可以连潜：dive 5（配 stop=new 钓到新种就停），省来回。"
+def _cast_many(bait_id, times, stop_on, mode="cast"):
+    dive = mode == "dive"
     times = max(1, min(20, int(times)))
-    if times == 1 and not stop_on:   # 单竿：钓成功就提醒可以连钓省 token
+    if times == 1 and not stop_on:   # 单次：成功就提醒可以连钓/连潜省 token
         rng = _Rng(S["rngState"], S["rngCalls"])
-        r = _cast_step(rng, bait_id)
+        r = _cast_step(rng, bait_id, mode)
         S["rngState"] = rng.state; S["rngCalls"] = rng.calls
-        return r["text"] + _SOLO_HINT if r["consumed"] else r["text"]
+        if not r["consumed"]: return r["text"]
+        return r["text"] + (_DIVE_SOLO_HINT if dive else _SOLO_HINT)
     rng = _Rng(S["rngState"], S["rngCalls"])
     stop = set(stop_on or [])
     highlights = []; caught = {}; caught_n = 0; new_n = 0; junk_n = 0; empty_n = 0; done = 0
-    stop_reason = "钓满 %d 竿" % times
+    stop_reason = ("潜满 %d 次" % times) if dive else ("钓满 %d 竿" % times)
     for _ in range(times):
-        r = _cast_step(rng, bait_id)
+        r = _cast_step(rng, bait_id, mode)
         if not r["consumed"]:
-            highlights.append(r["text"]); stop_reason = "没饵了"; break
+            highlights.append(r["text"]); stop_reason = "没气瓶了" if dive else "没饵了"; break
         done += 1
         rank = _RARITY_RANK.get(r.get("rarity", ""), 0)
         if r.get("first") or rank >= 2 or r["kind"] == "event" or r["season_changed"] or r.get("luck") or r.get("fever_hit"):
@@ -596,12 +645,13 @@ def _cast_many(bait_id, times, stop_on):
             stop_reason = "钓到新种" if ("new" in stop and r.get("first")) else ("钓到稀有+" if ("rare" in stop and rank >= 2) else "遇到事件")
             break
     S["rngState"] = rng.state; S["rngCalls"] = rng.calls
-    haul = "、".join("%s×%d" % (n, c) for n, c in caught.items()) or "空军"
-    tail = "🐟 上钩 %d 条%s：%s" % (caught_n, ("（新种 %d）" % new_n) if new_n else "", haul)
-    if junk_n: tail += "　🪣 杂物 %d 竿" % junk_n
-    if empty_n: tail += "　🌀 空竿 %d" % empty_n
+    haul = "、".join("%s×%d" % (n, c) for n, c in caught.items()) or ("空潜" if dive else "空军")
+    tail = "🐟 %s %d 条%s：%s" % ("摸上" if dive else "上钩", caught_n, ("（新种 %d）" % new_n) if new_n else "", haul)
+    if junk_n: tail += ("　🪨 空摸 %d 次" % junk_n) if dive else ("　🪣 杂物 %d 竿" % junk_n)
+    if empty_n: tail += "　🌀 空%s %d" % ("潜" if dive else "竿", empty_n)
     body = ("\n———\n".join(highlights) + "\n\n") if highlights else ""
-    return "🎣 连钓 %d 竿 · 停因：%s\n%s—— 收获 ——\n%s" % (done, stop_reason, body, tail)
+    head = ("🤿 连潜 %d 次" % done) if dive else ("🎣 连钓 %d 竿" % done)
+    return "%s · 停因：%s\n%s—— 收获 ——\n%s" % (head, stop_reason, body, tail)
 
 _HELP = """文字钓鱼游戏（你是玩家）。用点数买鱼饵→抛竿→按稀有度概率钓鱼→卖鱼换点数→集齐图鉴。
 指令（传给 cmd()，大小写不敏感）：
@@ -611,7 +661,9 @@ _HELP = """文字钓鱼游戏（你是玩家）。用点数买鱼饵→抛竿→
   cmd('cast [饵id]')          抛竿一次（不填=用最便宜可用饵）；核心动作
   cmd('cast [饵id] N')        一次连钓 N 竿（1~20），只回一个汇总，省来回
   cmd('cast N stop=rare')     连钓时遇到 新种(new)/稀有(rare)/事件(event) 就提前停（可逗号多选）
-  cmd('goto')                 不带参数 = 列出所有钓点（价格/本季是否有鱼）
+  cmd('buy oxygen [数量]')     买氧气瓶（潜水用，一瓶潜一次）
+  cmd('dive [次数] [stop=..]') 潜水：耗氧气瓶(不耗饵)，捕只在水下出没的鱼；带次数=连潜，stop 同 cast
+  cmd('goto')                 不带参数 = 列出所有钓点（价格/本季待发现；买过氧气瓶还显示水下待发现）
   cmd('goto <地点id>')         前往该地点（未解锁则花点数解锁）
   cmd('inventory')            看渔篓 + 物品 + 待开宝箱
   cmd('sell <实例id>') | cmd('sell all') | cmd('sell species <鱼id>') | cmd('sell item <物品id>')   卖鱼/卖财宝换点数
@@ -619,7 +671,7 @@ _HELP = """文字钓鱼游戏（你是玩家）。用点数买鱼饵→抛竿→
   cmd('encyclopedia')         看图鉴收集进度
   cmd('look <id或中文名>')     细看鱼/地点/鱼饵/季节/物品（如 cmd('look 月鳞鲤')；没钓到的鱼显示 ？？？）
   cmd('A; B; C')              把多条指令用 ; 或换行串成一批、一次执行（最多 8 条），如 cmd('buy basic_worm 10; cast 10')、cmd('goto reed_river; cast 8 stop=new')
-抛竿偶尔会遇到漂流瓶/宝箱/宝物等惊喜事件；钓到鱼时也偶有幸运时刻（分裂鱼钩/渔获热潮/河神祝福…），可遇不可求。每次返回末尾都有一行 📊 状态栏 JSON（点数/地点/季节/回合/图鉴/余饵/未卖渔获；fever=剩余翻倍、free_bait=剩余免饵），看它就够、不必再单独 status。
+抛竿偶尔会遇到漂流瓶/宝箱/宝物等惊喜事件；钓到鱼时也偶有幸运时刻（分裂鱼钩/渔获热潮/河神祝福…），可遇不可求。买氧气瓶后可在任意钓点 dive 潜水，捕获只有水下才有的鱼种（水面抛竿钓不到）。每次返回末尾都有一行 📊 状态栏 JSON（点数/地点/季节/回合/图鉴/余饵/未卖渔获；oxygen=氧气瓶、fever=剩余翻倍、free_bait=剩余免饵），看它就够、不必再单独 status。
 goto 清单会标出每个钓点当季还有几种没见过的鱼（含单列的传说级），照着去补图鉴。
 目标：用有限点数把图鉴里的鱼尽量集满（有的鱼只在特定地点+季节出现）。一开始你并不知道有哪些鱼——靠抛竿去发现。"""
 
@@ -651,6 +703,10 @@ def _run_one(line):
             ct = next((int(t) for t in a if t.isdigit()), 1)
             cs = next((t[5:].split(",") for t in a if t.startswith("stop=")), None)
             return _cast_many(cb, ct, cs)
+        elif c == "dive":   # 潜水：耗氧气瓶、不耗饵，只出水下鱼。dive [次数] [stop=...]
+            dt = next((int(t) for t in a if t.isdigit()), 1)
+            ds = next((t[5:].split(",") for t in a if t.startswith("stop=")), None)
+            return _cast_many(None, dt, ds, "dive")
         elif c == "open": return _c_open(a[0] if a else "")
         elif c in ("goto", "go"): return _c_goto(a[0] if a else "")
         elif c in ("inventory", "inv", "i"): return _c_inv()

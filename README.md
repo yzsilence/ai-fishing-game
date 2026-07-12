@@ -374,6 +374,9 @@ docker compose restart
 
 存档(fishing_save.json / bird_save.json)不在 git 管辖内,升级不会动它们;钓鱼进度原样保留,观鸟工具自动出现(客户端重连一次 MCP 即可看到)。若你选择全新 clone,把旧目录的 fishing_save.json 复制进新目录 app/ 下即可继续原进度。
 
+> **不小心部署了两套?** 两套服务会抢同一端口,请只留一套:在要弃用的目录执行 `docker compose down`,把它的 `app/fishing_save.json` 复制到保留的那套 `app/` 下,确认游戏正常后删除旧目录,并在客户端删掉旧的 MCP 连接。存档是普通文件,复制即搬家。
+
+
 
 观鸟工具已挂在钓鱼的 MCP 服务上(`birdwatch` / `bird_reset`),部署方式与上文钓鱼部分完全相同,无需额外配置。适合想让 AI 伙伴跨对话持续养成的玩法。
 

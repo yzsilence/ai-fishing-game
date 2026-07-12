@@ -362,6 +362,19 @@ print(birdgame.cmd("scan 8"))
 
 ## MCP 部署(跨会话长线玩)
 
+### 已在玩钓鱼游戏?升级指南
+
+如果你此前已按上文部署过钓鱼 MCP,想加上观鸟,在部署目录执行:
+
+```bash
+cp examples/mcp-server/app/fishing_save.json examples/mcp-server/app/fishing_save.json.backup  # 保险起见先备份存档
+git pull https://github.com/yzsilence/ai-fishing-game.git main
+docker compose restart
+```
+
+存档(fishing_save.json / bird_save.json)不在 git 管辖内,升级不会动它们;钓鱼进度原样保留,观鸟工具自动出现(客户端重连一次 MCP 即可看到)。若你选择全新 clone,把旧目录的 fishing_save.json 复制进新目录 app/ 下即可继续原进度。
+
+
 观鸟工具已挂在钓鱼的 MCP 服务上(`birdwatch` / `bird_reset`),部署方式与上文钓鱼部分完全相同,无需额外配置。适合想让 AI 伙伴跨对话持续养成的玩法。
 
 ## 目录说明

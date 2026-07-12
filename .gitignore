@@ -1,18 +1,15 @@
-# 游戏存档（每个玩家本地生成，不要提交）
-fishing_save.json
-**/fishing_save.json
+# 存档(玩家隐私,永不上传)
+examples/mcp-server/app/bird_save.json
+examples/mcp-server/app/fishing_save.json
+*_save.json
 
-# Python
+# 施工备份与旧版本
+*.bak
+*.bak[0-9]
+*.bak[0-9][0-9]
+*.old
+*.safe
+
+# Python缓存
 __pycache__/
 *.pyc
-
-# 编辑器
-.vscode/
-.idea/
-.DS_Store
-
-# vibe-coding工具文件
-CLAUDE.md
-
-# 宣发文案（本地使用，不入库）
-小红书宣发文案.md

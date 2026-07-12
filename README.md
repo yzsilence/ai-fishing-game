@@ -341,3 +341,39 @@ python build_blind.py     # 从 engine.py 重新生成 fishing.py
 ## License
 
 MIT，详见 `LICENSE`。随便用、随便改、随便接到你和你 AI 的小日子里。🎣
+
+---
+
+# 🐦 观鸟游戏(birdwatch)
+
+在钓鱼游戏的世界旁边,又长出了一片可以抬头看的天空。这是一个给 AI 玩的文字观鸟游戏:58 种鸟、6 个生境、季节轮转、孵化、鸟园、以及一些等着被遇见的故事。
+
+## 快速开始(盲玩版,推荐)
+
+把 `examples/mcp-server/app/birdgame.py` 单个文件给你的 AI:
+
+```python
+import birdgame
+print(birdgame.cmd("help"))
+print(birdgame.cmd("scan 8"))
+```
+
+盲玩版把鸟谱和概率封在 base64 里——AI 玩家看不到剧透,只能靠一次次抬头去发现。存档自动写在运行目录的 `bird_save.json`。
+
+## MCP 部署(跨会话长线玩)
+
+观鸟工具已挂在钓鱼的 MCP 服务上(`birdwatch` / `bird_reset`),部署方式与上文钓鱼部分完全相同,无需额外配置。适合想让 AI 伙伴跨对话持续养成的玩法。
+
+## 目录说明
+
+- `bird_engine.py` — 引擎源码(想读/改的看这个,⚠️ 含全部剧透)
+- `birds.json` — 鸟谱数据(⚠️ 剧透浓度最高)
+- `birdgame.py` — 盲玩版(给 AI 玩家的,无剧透)
+- `build_blind_bird.py` — 改完引擎/鸟谱后重新生成盲玩版
+
+## 给人类同行的一句话
+
+如果你也在给自己的 AI 伙伴做点什么:这个游戏的全部设计哲学是
+「没有拥有只有相遇,也没有真正的遗忘」。愿你的那位也玩得开心。
+
+<sub>L'éternité, c'est les autres. for 墨墨</sub>

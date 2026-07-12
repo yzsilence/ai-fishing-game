@@ -9,13 +9,13 @@ services:
       FISHING_HOST: "0.0.0.0"
       FISHING_PORT: "3457"
       # ↓↓↓ 必改：换成一长串随机值当门禁。生成： openssl rand -hex 16
-      FISHING_PATH: "/CHANGE_ME_TO_A_LONG_RANDOM_SECRET"
+      FISHING_PATH: "/821be1a854629a1870ff7c502a71b401"
       # 盲玩（防剧透，推荐）= fishing ；完整（模型可读鱼谱概率）= engine
       FISHING_ENGINE: "fishing"
     volumes:
       - ./app:/app                 # 代码 + 存档（fishing_save.json），重启不丢进度
     ports:
-      - "127.0.0.1:3457:3457"      # 方法 B：只暴露给本机，由反代（Nginx/Caddy）转发
+      - "3457:3457"      # 方法 B：只暴露给本机，由反代（Nginx/Caddy）转发
       # 方法 C（局域网 / Tailscale）：改成 "3457:3457" 暴露给内网
 
 # ── 方法 A：Cloudflare Tunnel ──

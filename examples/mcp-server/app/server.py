@@ -1,81 +1,87 @@
+#!/usr/bin/env python3
 """
-把「AI 文字钓鱼」引擎包成一个远程 MCP server。
-
-任何支持「自定义 MCP 连接器 / Streamable HTTP」的客户端（claude.ai、Claude Desktop，
-以及其它兼容 MCP 的工具）都能连上来玩。游戏逻辑完全来自仓库里的 engine.py / fishing.py，
-这里只做一层薄薄的工具封装，不改动任何核心。
-
-配置全部走环境变量，无需改这份代码：
-  FISHING_HOST    监听地址，默认 0.0.0.0（容器间/隧道访问需要；纯本机反代可设 127.0.0.1）
-  FISHING_PORT    监听端口，默认 3457
-  FISHING_PATH    Streamable HTTP 的 endpoint 路径，默认 /mcp
-                  强烈建议设成一长串随机值当门禁，例如 /3f9a8c...（生成： openssl rand -hex 16）
-  FISHING_ENGINE  fishing = 盲玩版（防剧透，推荐） / engine = 完整版（模型可读鱼谱与概率）
+MCP Server for Fishing + Birdwatching
+Supports: play_fishing (uses fishing.py) and birdwatch (uses birds.json)
 """
+
 import os
-
+import sys
+import json
+import random
+import time
+from typing import Any, Dict, List, Optional, Tuple
 from mcp.server.fastmcp import FastMCP
 
-# ── 选引擎：盲玩版把内容藏在打包数据里，模型只能靠抛竿亲手发现；完整版可直接读到鱼谱/概率 ──
-_ENGINE_NAME = os.getenv("FISHING_ENGINE", "fishing").strip().lower()
-if _ENGINE_NAME == "engine":
-    import engine as game
-else:
-    import fishing as game
-
+# ---------- Environment Config ----------
+FISHING_ENGINE = os.getenv("FISHING_ENGINE", "fishing")  # "fishing" or "engine"
+FISHING_PATH = os.getenv("FISHING_PATH", "/mcp")
 HOST = os.getenv("FISHING_HOST", "0.0.0.0")
 PORT = int(os.getenv("FISHING_PORT", "3457"))
-PATH = os.getenv("FISHING_PATH", "/mcp")
-if not PATH.startswith("/"):
-    PATH = "/" + PATH
 
-mcp = FastMCP(
-    "fishing",
-    host=HOST,
-    port=PORT,
-    streamable_http_path=PATH,   # 把密钥做成 endpoint 路径 = 最简单的门禁
-    stateless_http=True,         # 游戏状态在存档文件里、不依赖 MCP 会话；省掉 session-id 来回，反代/隧道更省心
-)
+# ---------- Fishing Engine ----------
+# Directly import from fishing.py (blind version)
+from fishing import cmd as fishing_cmd
+from fishing import new_game as fishing_new_game
 
+# ---------- Birdwatching Engine ----------
+from bird_engine import BirdEngine
+
+# ---------- MCP Server ----------
+mcp = FastMCP("fishing", host=HOST, port=PORT, streamable_http_path=FISHING_PATH, stateless_http=True)
+
+# 初始化鸟引擎（全局）
+bird_engine = BirdEngine()
 
 @mcp.tool()
 def play_fishing(command: str) -> str:
-    """文字钓鱼游戏。把一条游戏指令作为 command 传入，返回结果文字。
-
-    常用指令：
-      help / status / shop / inventory / encyclopedia
-      goto                                       不带参数 = 列出所有钓点
-      goto <地点id>                              前往 / 解锁钓点
-      cast [饵id] [次数] [stop=new,rare,event]   抛竿；带次数=连钓 1~20 竿；stop= 遇新种/稀有/事件就提前停
-      buy <饵id> [数量]                          买饵；buy oxygen 5 买氧气瓶
-      dive [带几瓶] [stop=...]                   潜水远征（需先 buy oxygen）
-      choose <编号> / surface                    大遗迹处抉择 / 主动上浮
-      sell <实例id | all | species 鱼id | item 物品id>
-      open <宝箱uid> / look <id或中文名>
-
-    省 token 技巧：用 `cast 10` 一次连钓只回一个汇总；用 ; 或换行把多条指令串成一批一次跑
-    （最多 8 条），如 'buy basic_worm 10; cast 10'、'goto reed_river; cast 8 stop=new'。
-    每次返回末尾都带一行 📊 状态栏 JSON，看它即可掌握当前局面，不必反复 status。
-    """
-    try:
-        return game.cmd(command)
-    except Exception as e:  # 引擎对任何输入都安全；走到这里多半是环境/存档目录问题
-        return f"⚠️ 指令执行出错：{e}。请检查指令格式，或调 play_fishing('help') 看规则。"
-
+    """Send a command to the fishing game (uses fishing.py engine)."""
+    return fishing_cmd(command)
 
 @mcp.tool()
-def new_game(seed: int = 0) -> str:
-    """重开一局并清空当前进度。
-
-    seed=0 用默认种子；填非 0 的整数用自定义种子。本游戏是确定性的——
-    同一个种子 + 同一串指令序列，结果逐位可复现（便于复盘 / 分享同一局）。
-    注意：这会清掉现有存档，慎用。
+def birdwatch(command: str) -> str:
+    """文字观鸟游戏。把一条游戏指令作为 command 传入，返回结果文字。
+    常用指令：
+      help / status / shop / inventory / encyclopedia / letters
+      goto [生境名]                        不带参数 = 列出生境和本季情报
+      scan [次数] [饵id] [stop=新种,稀有,传说]  观察；带次数=连看 1~8 次；stop= 遇新种/稀有就提前停
+      submit                               提交笔记换点数
+      buy <饵id> [数量]                    买饵 (berries/seeds/fish)
+      aviary / invite <鸟名> / feed <鸟名> <饵id>   鸟园：查看 / 邀请 / 喂食
+      hatch [蛋名] / feed 雏鸟 <饵id>      孵化鸟蛋 / 喂养雏鸟
+      story <鸟名> / look <鸟名>           读日志残页 / 细看某鸟
+    省 token 技巧：用 `scan 8` 一次连看只回一个汇总；用 ; 把多条指令串成一批一次跑
+    （最多 8 条），如 'scan 8; submit'、'status; aviary; letters'。
+    每次返回末尾带一行 📊 状态栏 JSON，看它即可掌握局面，不必反复 status。
+    行为约定：一条回复中最多调用一次本工具（可用批量指令），看完结果再决定下一步；
+    连续 scan 有冷却，被提醒休息时请转向鸟园、故事或整理收藏。
     """
     try:
-        return game.new_game(seed) if seed else game.new_game()
+        return bird_engine.cmd(command)
     except Exception as e:
-        return f"⚠️ 重开失败：{e}"
+        return f"⚠️ 指令执行出错：{e}。请检查格式，或调 birdwatch('help') 看规则。"
 
+@mcp.tool()
+def new_game(seed: Optional[int] = None) -> str:
+    """Reset the fishing game (clears save)."""
+    return fishing_new_game(seed)
 
+@mcp.tool()
+def bird_reset(confirm: bool = False) -> str:
+    """重置观鸟游戏，清空全部进度（图鉴、点数、收藏、笔记）。
+    直接调用只会返回确认提示；真的要重置请传 confirm=True。
+    注意：此操作不可恢复，不影响钓鱼游戏。
+    """
+    global bird_engine
+    if not confirm:
+        return "⚠️ 这会清空观鸟的全部进度（图鉴、收藏、点数），且无法恢复。确认重置请用 bird_reset(confirm=True)。"
+    try:
+        if os.path.exists(bird_engine.save_path):
+            os.remove(bird_engine.save_path)
+        bird_engine = BirdEngine()
+        return "✅ 观鸟游戏已重置，一切回到最初：200 点，站在芦花浅渚。"
+    except Exception as e:
+        return f"⚠️ 重置失败：{e}"
+
+# ---------- Run ----------
 if __name__ == "__main__":
     mcp.run(transport="streamable-http")

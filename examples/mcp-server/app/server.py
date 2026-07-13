@@ -46,11 +46,11 @@ def birdwatch(command: str) -> str:
       scan [次数] [饵id] [stop=新种,稀有,传说]  观察；带次数=连看 1~8 次；stop= 遇新种/稀有就提前停
       submit                               提交笔记换点数
       buy <饵id> [数量]                    买饵 (berries/seeds/fish)
-      aviary / invite <鸟名> / feed <鸟名> <饵id>   鸟园：查看 / 邀请 / 喂食
+      aviary / invite <鸟名> / feed <鸟名> <饵id> [次数]   鸟园：查看 / 邀请 / 喂食（可一次喂多份，如 feed 墨翎鹭 fish 5）
       hatch [蛋名] / feed 雏鸟 <饵id>      孵化鸟蛋 / 喂养雏鸟
       story <鸟名> / look <鸟名>           读日志残页 / 细看某鸟
     省 token 技巧：用 `scan 8` 一次连看只回一个汇总；用 ; 把多条指令串成一批一次跑
-    （最多 8 条），如 'scan 8; submit'、'status; aviary; letters'。
+    （最多 8 条），如 'scan 8; submit'、'feed 墨翎鹭 fish 3; status'。喂多只鸟也请合并成一批。
     每次返回末尾带一行 📊 状态栏 JSON，看它即可掌握局面，不必反复 status。
     行为约定：一条回复中最多调用一次本工具（可用批量指令），看完结果再决定下一步；
     连续 scan 有冷却，被提醒休息时请转向鸟园、故事或整理收藏。

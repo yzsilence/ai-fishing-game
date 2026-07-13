@@ -322,7 +322,13 @@ class BirdEngine:
 
     def _feed(self, args):
         if len(args) < 2:
-            return "怎么喂呢？feed <鸟名> <诱饵>（berries/seeds/fish）"
+            return "怎么喂呢？feed <鸟名> <诱饵> [次数]（berries/seeds/fish）"
+        count = 1
+        if args[-1].isdigit():
+            count = max(1, min(int(args[-1]), 10))
+            args = args[:-1]
+        if len(args) < 2:
+            return "怎么喂呢？feed <鸟名> <诱饵> [次数]（berries/seeds/fish）"
         bait = args[-1].lower()
         if bait not in ["berries", "seeds", "fish"]:
             return f"❌ 没有 {bait} 这种食物，可选 berries/seeds/fish。"
@@ -331,34 +337,48 @@ class BirdEngine:
         if not bird or bird["id"] not in av:
             return "❌ 鸟园里没有这位住客。用 aviary 看看谁在家。"
         key = f"诱饵:{bait}"
-        if self.inventory.get(key, 0) <= 0:
-            return f"❌ 没有 {bait} 了，先去 buy 一些。"
-        self.inventory[key] -= 1
         info = av[bird["id"]]
         is_fav = bird.get("diet") == bait
-        info["fed_today"] = info.get("fed_today", 0) + 1
-        combo = is_fav and info["fed_today"] >= 3
-        gained_days = 3 if is_fav else 1
-        gained_bond = 4 if combo else (3 if is_fav else 1)
-        info["days"] += gained_days
-        old_bond = info["bond"]
-        info["bond"] += gained_bond
-        gift_text = ""
-        if old_bond // 25 < info["bond"] // 25:
-            drops = bird.get("drops", [])
-            if drops:
-                gift = random.choice(drops)
-                g_type = "宝石" if "石" in gift else "珍羽"
-                self.collection[g_type].append(gift)
-                gift_text = f"\n🎁 {bird['name']} 衔来一件小东西轻轻放在你手边：「{gift}」。"
+        fed = 0
+        total_days = 0
+        total_bond = 0
+        gifts = []
+        for _ in range(count):
+            if self.inventory.get(key, 0) <= 0:
+                break
+            self.inventory[key] -= 1
+            fed += 1
+            info["fed_today"] = info.get("fed_today", 0) + 1
+            combo = is_fav and info["fed_today"] >= 3
+            gained_days = 3 if is_fav else 1
+            gained_bond = 4 if combo else (3 if is_fav else 1)
+            info["days"] += gained_days
+            old_bond = info["bond"]
+            info["bond"] += gained_bond
+            total_days += gained_days
+            total_bond += gained_bond
+            if old_bond // 25 < info["bond"] // 25:
+                drops = bird.get("drops", [])
+                if drops:
+                    gift = random.choice(drops)
+                    g_type = "宝石" if "石" in gift else "珍羽"
+                    self.collection[g_type].append(gift)
+                    gifts.append(gift)
+        if fed == 0:
+            return f"❌ 没有 {bait} 了，先去 buy 一些。"
         self.save()
-        if is_fav and combo:
+        if is_fav and info["fed_today"] >= 3:
             react = f"它已经开始期待你的手了。今天喂了 {info['fed_today']} 次，它记得每一次。"
         elif is_fav:
             react = f"是它最爱的{self.DIET_NAMES[bait]}！它吃得很急，尾羽都翘了起来。"
         else:
             react = f"它礼貌地吃了几口{self.DIET_NAMES[bait]}，但你感觉它在期待别的。"
-        return f"🍽️ {react}（停留 +{gained_days} 天，亲密度 +{gained_bond}，现为 {info['bond']}）{gift_text}" + self._statusline()
+        gift_text = ""
+        if gifts:
+            gift_text = "\n🎁 " + bird["name"] + " 衔来小东西轻轻放在你手边：「" + "、".join(gifts) + "」。"
+        tail_note = "，诱饵只够这些" if fed < count else ""
+        summary = f"（喂了 {fed} 次{tail_note}，停留 +{total_days} 天，亲密度 +{total_bond}，现为 {info['bond']}）"
+        return f"🍽️ {react}{summary}{gift_text}" + self._statusline()
 
     def _hatch_start(self, egg_name):
         if getattr(self, "nest_egg", None):
@@ -543,12 +563,13 @@ buy <诱饵id> [数量]                 — 买诱饵 (berries浆果/seeds种子
 inventory                           — 查看收藏和物品\nexchange <物品名|all> [数量]        — 珍羽/宝石兑换点数\nletters                             — 重读收藏的风信笺
 aviary                              — 查看鸟园
 invite <鸟名>                       — 邀请见过的鸟入驻（容量8席）
-feed <鸟名> <诱饵>                  — 喂食，投其所好停留更久、亲密更快
+feed <鸟名> <诱饵> [次数]           — 喂食（可一次喂多份，如 feed 墨翎鹭 fish 5），投其所好停留更久、亲密更快
 hatch [蛋名]                        — 孵化收藏的鸟蛋（2次观察破壳，喂3次长大后放归）
 story <鸟名>                        — 读某只鸟的日志残页（需足够亲密；并非每只鸟都有）
 note <一句话> / notes               — 随手记：写下与翻看只属于你的片段
 status                              — 查看状态（点数、生境、季节等）
 encyclopedia                        — 图鉴收集进度
+💡 小技巧：多条指令可用分号连写一次发出（上限8条），如 scan; feed 墨翎鹭 fish 3; status
 look <鸟名>                         — 细看某鸟详情
 help                                — 本帮助
 
